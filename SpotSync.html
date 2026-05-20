@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SpotSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #2D9F6E;
+  --primary-dark: #1E7A52;
+  --primary-light: #E8F8F0;
+  --primary-medium: #A8E6CF;
+  --bg: #FFFFFF;
+  --surface: #F8FAF9;
+  --card: #FFFFFF;
+  --text: #1A1D1A;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --border: #F0F0F0;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+  --green: #34D399;
+  --yellow: #FBBF24;
+  --red: #F87171;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-full: 9999px;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #E5E7EB;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.phone-frame {
+  width: 393px;
+  height: 852px;
+  background: var(--bg);
+  border-radius: 44px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.06), var(--shadow-lg);
+  position: relative;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 420px) {
+  .phone-frame {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
+body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+
+/* Status Bar */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.status-bar .time { font-weight: 700; }
+.status-icons { display: flex; gap: 6px; font-size: 13px; color: var(--text); }
+
+/* Screens */
+.screens-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 80px 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateY(6px);
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+.screen::-webkit-scrollbar { display: none; }
+
+/* Bottom Nav */
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px 8px;
+  flex-shrink: 0;
+  z-index: 50;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.2s;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item i { font-size: 20px; transition: color 0.2s; }
+.nav-item span { transition: color 0.2s; }
+.nav-item.active { color: var(--primary); }
+.nav-item.active i { color: var(--primary); }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 0 0 3px 3px;
+}
+
+/* Padding utility */
+.content { padding: 0 20px; }
+
+/* Headings */
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+h3 { font-size: 15px; font-weight: 600; }
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0 16px;
+  gap: 12px;
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-bar:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(45, 159, 110, 0.10);
+}
+.search-bar i { color: var(--text-muted); font-size: 16px; }
+.search-bar input {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 14px 0;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  color: var(--text);
+}
+.search-bar input::placeholder { color: var(--text-muted); }
+
+/* Button Primary */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active { transform: scale(0.97); background: var(--primary-dark); }
+.btn-primary i { font-size: 18px; }
+
+/* Category Buttons */
+.categories {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-btn i { font-size: 22px; color: var(--primary); }
+.cat-btn:active { transform: scale(0.96); border-color: var(--primary); background: var(--primary-light); }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.card:active { transform: scale(0.98); }
+.card-hover:hover { box-shadow: var(--shadow); }
+
+.cards-hscroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+}
+.cards-hscroll::-webkit-scrollbar { display: none; }
+.cards-hscroll .card {
+  min-width: 220px;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+.card-img {
+  width: 100%;
+  height: 110px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+}
+.card-img .badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  color: white;
+}
+.badge-green { background: var(--green); }
+.badge-yellow { background: var(--yellow); color: #92400E; }
+.badge-red { background: var(--red); }
+
+.card h3 { font-size: 15px; margin-bottom: 4px; }
+.card .sub { font-size: 13px; color: var(--text-secondary); }
+.card .row { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--text-secondary); }
+
+/* Section Headers */
+.sec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.sec-header h2 { margin-bottom: 0; }
+.sec-header a { font-size: 13px; font-weight: 500; color: var(--primary); text-decoration: none; cursor: pointer; }
+
+/* ===== SCREEN 1: HOME ===== */
+#home .greeting { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+#home .welcome-text { font-size: 22px; font-weight: 700; line-height: 1.3; margin-bottom: 20px; letter-spacing: -0.3px; }
+#home .welcome-text span { color: var(--primary); }
+#home .btn-primary { margin-bottom: 24px; }
+
+/* ===== SCREEN 2: MAP ===== */
+#map .map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+#map .map-header h1 { font-size: 22px; }
+#map .map-header button {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+#map .map-header button:active { transform: scale(0.92); background: var(--surface); }
+
+.map-container {
+  background: #EAF5EE;
+  border-radius: var(--radius);
+  height: 240px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid #D5E8DC;
+}
+
+.map-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(45,159,110,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45,159,110,0.06) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.map-building {
+  position: absolute;
+  background: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(45,159,110,0.25);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+  padding: 2px;
+}
+.map-pin {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 5;
+}
+.map-pin:active { transform: scale(1.15); }
+.map-pin.green { background: var(--green); }
+.map-pin.yellow { background: var(--yellow); color: #92400E; }
+.map-pin.red { background: var(--red); }
+
+.loc-list { display: flex; flex-direction: column; gap: 10px; }
+.loc-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.loc-card:active { transform: scale(0.98); border-color: var(--primary); }
+.loc-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.loc-dot.green { background: var(--green); }
+.loc-dot.yellow { background: var(--yellow); }
+.loc-dot.red { background: var(--red); }
+.loc-info { flex: 1; }
+.loc-info h3 { font-size: 14px; margin-bottom: 2px; }
+.loc-info p { font-size: 12px; color: var(--text-secondary); }
+.loc-cap { font-size: 11px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+
+/* ===== SCREEN 3: FILTERS ===== */
+#filters .filter-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-top: 4px;
+}
+#filters .filter-header button {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+#filters .filter-header h1 { font-size: 20px; flex: 1; }
+
+.filter-section { margin-bottom: 28px; }
+.filter-section label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 12px; color: var(--text); }
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.chip:active { transform: scale(0.96); }
+.chip.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(45,159,110,0.10);
+}
+.chip i { font-size: 14px; opacity: 0.7; }
+.chip.selected i { opacity: 1; color: var(--primary); }
+
+/* ===== SCREEN 4: DETAILS ===== */
+#details .detail-img {
+  height: 180px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  position: relative;
+}
+.detail-header { margin-bottom: 16px; }
+.detail-header h1 { font-size: 22px; margin-bottom: 4px; }
+.detail-header .loc { font-size: 13px; color: var(--text-secondary); }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.detail-stat {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.detail-stat .label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+.detail-stat .value { font-size: 14px; font-weight: 600; }
+.detail-stat .value i { margin-right: 4px; }
+.detail-stat .value.green { color: var(--primary); }
+.detail-stat .value.yellow { color: #D97706; }
+.detail-stat .value.red { color: var(--red); }
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.tag {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.detail-actions { display: flex; gap: 10px; }
+.detail-actions .btn-primary { flex: 1; }
+.detail-actions .btn-secondary {
+  width: 52px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 18px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.detail-actions .btn-secondary:active { transform: scale(0.94); background: var(--surface); }
+.detail-actions .btn-secondary.saved { color: var(--primary); border-color: var(--primary); background: var(--primary-light); }
+
+/* ===== SCREEN 5: NAVIGATION ===== */
+#nav .nav-map {
+  background: #EAF5EE;
+  border-radius: var(--radius);
+  height: 320px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid #D5E8DC;
+}
+.nav-route {
+  position: absolute;
+  top: 120px;
+  left: 60px;
+  right: 80px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+.nav-route::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.nav-route::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  transform: translateY(-50%);
+  border-left: 12px solid var(--primary);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+.nav-dot {
+  position: absolute;
+  width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.nav-start {
+  position: absolute;
+  bottom: 16px; left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.nav-end {
+  position: absolute;
+  top: 100px; right: 60px;
+  width: 20px; height: 20px;
+  background: var(--red);
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.nav-info {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.nav-info-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.nav-info-text { flex: 1; }
+.nav-info-text .time { font-size: 20px; font-weight: 700; color: var(--primary); }
+.nav-info-text .sub { font-size: 13px; color: var(--text-secondary); }
+
+/* ===== SCREEN 6: FEEDBACK ===== */
+#feedback .fb-header { text-align: center; padding: 20px 0 16px; }
+#feedback .fb-header h2 { font-size: 20px; margin-bottom: 4px; }
+#feedback .fb-header p { font-size: 13px; color: var(--text-secondary); }
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.star-btn {
+  font-size: 36px;
+  color: #D1D5DB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.star-btn:active { transform: scale(1.1); }
+.star-btn.active { color: #FBBF24; }
+
+.fb-comment {
+  width: 100%;
+  min-height: 100px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 18px;
+  background: var(--surface);
+}
+.fb-comment:focus { border-color: var(--primary); }
+.fb-comment::placeholder { color: var(--text-muted); }
+
+.fb-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.fb-tag {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fb-tag:active { transform: scale(0.96); }
+.fb-tag.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+
+/* Toast */
+.toast {
+  position: absolute;
+  bottom: 90px;
+  left: 20px;
+  right: 20px;
+  background: var(--text);
+  color: white;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.35s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* Walkway paths on map */
+.map-walk {
+  position: absolute;
+  background: rgba(255,255,255,0.5);
+  border: 1px dashed rgba(45,159,110,0.2);
+}
+
+/* Dynamic building colors */
+.bldg { background: rgba(255,255,255,0.9) !important; }
+.bldg-accent { background: rgba(45,159,110,0.12) !important; border-color: rgba(45,159,110,0.35) !important; }
+
+/* Transitions */
+.slide-in { animation: slideIn 0.35s ease forwards; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollable content wrapper for screens */
+.screen-content {
+  padding: 0 20px;
+}
+</style>
+</head>
+<body>
+<div class="phone-frame" id="app">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time" id="statusTime">12:00</span>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-three-quarters"></i>
+    </div>
+  </div>
+
+  <!-- Screens Container -->
+  <div class="screens-container">
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 1: HOME -->
+    <!-- =============================== -->
+    <div class="screen active" id="screen-home">
+      <div class="screen-content">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-location-dot" style="color:var(--primary);font-size:18px;"></i>
+          <h1 style="font-size:22px;">SpotSync</h1>
+        </div>
+        <div class="greeting" id="greeting" style="margin-bottom:0;">Good afternoon, Student</div>
+
+        <div style="text-align:center;padding:16px 0 12px;">
+          <div style="font-size:34px;font-weight:700;letter-spacing:-0.5px;line-height:1.2;">Find a <span style="color:var(--primary);">seat</span>!</div>
+        </div>
+
+        <div class="search-bar" style="margin-bottom:10px;">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search for a space..." readonly onfocus="this.blur()">
+        </div>
+
+        <button class="btn-primary" onclick="goToScreen('map')" style="margin-bottom:20px;">
+          <i class="fas fa-compass"></i> Find a Space
+        </button>
+
+        <div class="sec-header">
+          <h2>Recommended Spaces</h2>
+          <a onclick="goToScreen('map')">See all</a>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="card" onclick="openDetails(0)" style="padding:12px;">
+            <div class="card-img" style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);height:90px;">
+              <span class="badge badge-green">Available</span>
+            </div>
+            <h3 style="font-size:13px;">Library Level 3</h3>
+            <div class="sub" style="font-size:11px;">Study Zone</div>
+            <div class="row" style="font-size:11px;"><i class="fas fa-user-friends"></i> 24 · <i class="fas fa-plug"></i> 12</div>
+          </div>
+          <div class="card" onclick="openDetails(1)" style="padding:12px;">
+            <div class="card-img" style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);height:90px;">
+              <span class="badge badge-yellow">Moderate</span>
+            </div>
+            <h3 style="font-size:13px;">Discussion Room A</h3>
+            <div class="sub" style="font-size:11px;">Group Room</div>
+            <div class="row" style="font-size:11px;"><i class="fas fa-user-friends"></i> 8 · <i class="fas fa-plug"></i> 6</div>
+          </div>
+          <div class="card" onclick="openDetails(2)" style="padding:12px;">
+            <div class="card-img" style="background: linear-gradient(135deg, #DBEAFE 0%, #93C5FD 100%);height:90px;">
+              <span class="badge badge-green">Available</span>
+            </div>
+            <h3 style="font-size:13px;">Student Lounge</h3>
+            <div class="sub" style="font-size:11px;">Relaxation</div>
+            <div class="row" style="font-size:11px;"><i class="fas fa-user-friends"></i> 16 · <i class="fas fa-plug"></i> 8</div>
+          </div>
+          <div class="card" onclick="openDetails(3)" style="padding:12px;">
+            <div class="card-img" style="background: linear-gradient(135deg, #FCE4EC 0%, #F48FB1 100%);height:90px;">
+              <span class="badge badge-red">Full</span>
+            </div>
+            <h3 style="font-size:13px;">Quiet Corner</h3>
+            <div class="sub" style="font-size:11px;">Deep Focus</div>
+            <div class="row" style="font-size:11px;"><i class="fas fa-user-friends"></i> 4 · <i class="fas fa-plug"></i> 2</div>
+          </div>
+        </div>
+
+        <button onclick="goToScreen('suggest')" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;margin-top:16px;background:var(--surface);border:1.5px dashed var(--primary);border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;color:var(--primary);cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
+          <i class="fas fa-plus-circle"></i> Suggest a Spot
+        </button>
+        <div style="height:12px;"></div>
+      </div>
+      <!-- bottom nav inserted by JS -->
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 2: MAP -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-map">
+      <div class="screen-content">
+        <div class="map-header">
+          <h1>Campus Map</h1>
+          <div></div>
+        </div>
+
+        <div class="map-container" id="mapContainer">
+          <div class="map-grid"></div>
+
+          <!-- Roads -->
+          <div style="position:absolute;top:78px;left:0;right:0;height:3px;background:rgba(156,163,175,0.2);border-top:1px solid rgba(156,163,175,0.1);border-bottom:1px solid rgba(156,163,175,0.1);"></div>
+          <div style="position:absolute;top:156px;left:0;right:0;height:3px;background:rgba(156,163,175,0.2);border-top:1px solid rgba(156,163,175,0.1);border-bottom:1px solid rgba(156,163,175,0.1);"></div>
+          <div style="position:absolute;top:0;bottom:0;left:82px;width:3px;background:rgba(156,163,175,0.2);border-left:1px solid rgba(156,163,175,0.1);border-right:1px solid rgba(156,163,175,0.1);"></div>
+          <div style="position:absolute;top:0;bottom:0;left:160px;width:3px;background:rgba(156,163,175,0.2);border-left:1px solid rgba(156,163,175,0.1);border-right:1px solid rgba(156,163,175,0.1);"></div>
+
+          <!-- Green spaces -->
+          <div style="position:absolute;top:86px;left:88px;width:64px;height:62px;background:rgba(52,211,153,0.15);border-radius:6px;"></div>
+
+          <!-- Row 1 buildings -->
+          <div style="position:absolute;top:12px;left:10px;width:64px;height:56px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.25);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Library</div>
+          <div style="position:absolute;top:12px;left:86px;width:66px;height:56px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Science</div>
+          <div style="position:absolute;top:12px;left:166px;width:66px;height:56px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Business</div>
+
+          <!-- Row 2 buildings -->
+          <div style="position:absolute;top:86px;left:10px;width:64px;height:62px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.25);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Student<br>Center</div>
+          <div style="position:absolute;top:86px;left:166px;width:66px;height:62px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Engineering</div>
+
+          <!-- Row 3 buildings -->
+          <div style="position:absolute;top:166px;left:10px;width:64px;height:58px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Arts</div>
+          <div style="position:absolute;top:166px;left:86px;width:66px;height:58px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Café</div>
+          <div style="position:absolute;top:166px;left:166px;width:66px;height:58px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:5px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.3;">Admin</div>
+
+          <!-- Legend -->
+        </div>
+
+        <div style="display:flex;gap:12px;margin:10px 0 16px;padding:8px 12px;background:var(--surface);border-radius:8px;font-size:11px;font-weight:500;color:var(--text-secondary);">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;"></span> Available</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--yellow);margin-right:4px;"></span> Moderate</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:4px;"></span> Full</span>
+        </div>
+
+        <h2 style="margin-bottom: 12px;">Nearby Spaces</h2>
+        <div class="loc-list">
+          <div class="loc-card" onclick="openDetails(0)">
+            <span class="loc-dot green"></span>
+            <div class="loc-info">
+              <h3>Library Level 3</h3>
+              <p>Study Zone · 2 min walk</p>
+            </div>
+            <span class="loc-cap">24 seats</span>
+          </div>
+          <div class="loc-card" onclick="openDetails(1)">
+            <span class="loc-dot yellow"></span>
+            <div class="loc-info">
+              <h3>Discussion Room A</h3>
+              <p>Group Room · 4 min walk</p>
+            </div>
+            <span class="loc-cap">8 seats</span>
+          </div>
+          <div class="loc-card" onclick="openDetails(2)">
+            <span class="loc-dot green"></span>
+            <div class="loc-info">
+              <h3>Student Lounge</h3>
+              <p>Relaxation · 3 min walk</p>
+            </div>
+            <span class="loc-cap">16 seats</span>
+          </div>
+          <div class="loc-card" onclick="openDetails(3)">
+            <span class="loc-dot red"></span>
+            <div class="loc-info">
+              <h3>Quiet Corner</h3>
+              <p>Silent Study · 5 min walk</p>
+            </div>
+            <span class="loc-cap">4 seats</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="goToScreen('filters')" style="margin-top:12px;">
+          <i class="fas fa-sliders-h"></i> Filter
+        </button>
+        <div style="height: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 3: FILTERS -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-filters">
+      <div class="screen-content">
+        <div class="filter-header">
+          <button onclick="goToScreen('map')"><i class="fas fa-arrow-left"></i></button>
+          <h1>Filters</h1>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div class="filter-section">
+          <label><i class="fas fa-layer-group" style="color:var(--primary);margin-right:6px;"></i> Space Type</label>
+          <div class="chip-group" id="filter-type">
+            <button class="chip selected" data-filter="quiet"><i class="fas fa-volume-low"></i> Quiet Space</button>
+            <button class="chip" data-filter="charging"><i class="fas fa-plug"></i> Charging Ports</button>
+            <button class="chip selected" data-filter="group"><i class="fas fa-users"></i> Group Study</button>
+            <button class="chip" data-filter="ac"><i class="fas fa-snowflake"></i> Air Conditioning</button>
+            <button class="chip" data-filter="near"><i class="fas fa-school"></i> Near Classroom</button>
+            <button class="chip" data-filter="relax"><i class="fas fa-couch"></i> Relaxation Area</button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <label><i class="fas fa-chair" style="color:var(--primary);margin-right:6px;"></i> Capacity</label>
+          <div class="chip-group" id="filter-capacity">
+            <button class="chip selected" data-filter="1-10">1–10 seats</button>
+            <button class="chip" data-filter="10-20">10–20 seats</button>
+            <button class="chip" data-filter="20+">20+ seats</button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <label><i class="fas fa-signal" style="color:var(--primary);margin-right:6px;"></i> Crowd Level</label>
+          <div class="chip-group" id="filter-crowd">
+            <button class="chip selected" data-filter="available"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px;"></span> Available</button>
+            <button class="chip" data-filter="moderate"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--yellow);margin-right:4px;"></span> Moderate</button>
+            <button class="chip" data-filter="quiet"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:4px;"></span> Full</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="goToScreen('map')" style="margin-top:8px;">
+          <i class="fas fa-check"></i> Apply Filters
+        </button>
+        <button onclick="resetFilters()" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;margin-top:8px;background:var(--primary-light);color:var(--primary-dark);border:1.5px solid var(--primary);border-radius:var(--radius);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
+          <i class="fas fa-rotate-left"></i> Reset Filters
+        </button>
+        <div style="height: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 4: DETAILS -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-details">
+      <div class="screen-content">
+        <div class="filter-header" style="margin-bottom:16px;">
+          <button onclick="goToScreen('map')"><i class="fas fa-arrow-left"></i></button>
+          <h1 style="font-size:18px;">Space Details</h1>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div class="detail-img" id="detailImg" style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);">
+        </div>
+
+        <div class="detail-header">
+          <h1 id="detailName">Library Level 3</h1>
+          <div class="loc" id="detailLoc"><i class="fas fa-map-pin"></i> Main Library, 3rd Floor</div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-stat">
+            <div class="label">Crowd Level</div>
+            <div class="value green" id="detailCrowd"><i class="fas fa-user-friends"></i> Low</div>
+          </div>
+          <div class="detail-stat">
+            <div class="label">Noise Level</div>
+            <div class="value green" id="detailNoise"><i class="fas fa-volume-down"></i> Quiet</div>
+          </div>
+          <div class="detail-stat">
+            <div class="label">Available Seats</div>
+            <div class="value" id="detailSeats"><i class="fas fa-chair"></i> 24</div>
+          </div>
+          <div class="detail-stat">
+            <div class="label">Charging Ports</div>
+            <div class="value" id="detailCharge"><i class="fas fa-plug"></i> 12</div>
+          </div>
+          <div class="detail-stat">
+            <div class="label">Opening Hours</div>
+            <div class="value" id="detailHours"><i class="fas fa-clock"></i> 7:00 – 22:00</div>
+          </div>
+          <div class="detail-stat">
+            <div class="label">Distance</div>
+            <div class="value" id="detailDist"><i class="fas fa-walking"></i> 2 min</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Best for</div>
+          <div class="detail-tags" id="detailTags">
+            <span class="tag">Solo Study</span>
+            <span class="tag">Quiet Work</span>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn-primary" onclick="goToScreen('nav')">
+            <i class="fas fa-location-arrow"></i> Navigate
+          </button>
+          <button class="btn-secondary" id="saveBtn" onclick="toggleSave()">
+            <i class="far fa-bookmark"></i>
+          </button>
+        </div>
+
+        <button onclick="bookSeat()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;margin-top:10px;background:var(--primary-dark);color:white;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
+          <i class="fas fa-calendar-check"></i> Book a Seat
+        </button>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;">Quick Feedback</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:10px;" id="detailStars">
+            <button class="star-btn" style="font-size:24px;" data-dstar="1"><i class="fas fa-star"></i></button>
+            <button class="star-btn" style="font-size:24px;" data-dstar="2"><i class="fas fa-star"></i></button>
+            <button class="star-btn" style="font-size:24px;" data-dstar="3"><i class="fas fa-star"></i></button>
+            <button class="star-btn" style="font-size:24px;" data-dstar="4"><i class="fas fa-star"></i></button>
+            <button class="star-btn" style="font-size:24px;" data-dstar="5"><i class="fas fa-star"></i></button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="detailFbInput" placeholder="How was it?" style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+            <button onclick="postDetailFeedback()" style="padding:10px 16px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">Post</button>
+          </div>
+        </div>
+        <div style="height: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 5: NAVIGATION -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-nav">
+      <div class="screen-content">
+        <div class="filter-header" style="margin-bottom:16px;">
+          <button onclick="goToScreen('details')"><i class="fas fa-arrow-left"></i></button>
+          <h1 style="font-size:18px;">Navigation</h1>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div class="nav-map">
+          <div class="map-grid"></div>
+
+          <div style="position:absolute;top:110px;left:60px;width:140px;height:60px;background:rgba(52,211,153,0.12);border-radius:20px;border:1px dashed rgba(52,211,153,0.2);"></div>
+
+          <div class="map-building" style="top:30px;left:20px;width:75px;height:40px;border-radius:6px;font-size:8px;">Library</div>
+          <div class="map-building" style="top:220px;left:20px;width:80px;height:35px;border-radius:6px;font-size:8px;">Student Center</div>
+          <div class="map-building" style="top:220px;left:115px;width:72px;height:35px;border-radius:6px;font-size:8px;">Engineering</div>
+
+          <div class="nav-route" style="top:155px;"></div>
+          <div class="nav-dot" style="top:130px;left:14px;"></div>
+          <div class="nav-end" style="top:60px;right:70px;"></div>
+
+          <div class="nav-start" style="bottom:16px;left:16px;">
+            <i class="fas fa-circle" style="color:var(--primary);font-size:8px;"></i> Your location
+          </div>
+        </div>
+
+        <div class="nav-info">
+          <div class="nav-info-icon">
+            <i class="fas fa-walking"></i>
+          </div>
+          <div class="nav-info-text">
+            <div class="time">4 min walk</div>
+            <div class="sub"><span id="navDest">Library Level 3</span> · 0.2 mi</div>
+          </div>
+          <i class="fas fa-chevron-right" style="color:var(--text-muted);"></i>
+        </div>
+
+        <button class="btn-primary" onclick="navArrived()">
+          <i class="fas fa-play"></i> Start Directions
+        </button>
+        <div style="height:12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 6: FEEDBACK -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-feedback">
+      <div class="screen-content">
+        <div class="filter-header" style="margin-bottom:8px;">
+          <button onclick="goToScreen('nav')"><i class="fas fa-arrow-left"></i></button>
+          <h1 style="font-size:18px;">Feedback</h1>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div class="fb-header">
+          <h2>How was this space?</h2>
+          <p>Your feedback helps other students</p>
+        </div>
+
+        <div class="stars" id="starContainer">
+          <button class="star-btn" data-star="1"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="2"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="3"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="4"><i class="fas fa-star"></i></button>
+          <button class="star-btn" data-star="5"><i class="fas fa-star"></i></button>
+        </div>
+
+        <textarea class="fb-comment" placeholder="Share your experience..." id="fbComment"></textarea>
+
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Tags</div>
+        <div class="fb-tags" id="fbTags">
+          <button class="fb-tag" data-tag="quiet">Quiet</button>
+          <button class="fb-tag" data-tag="comfortable">Comfortable</button>
+          <button class="fb-tag" data-tag="crowded">Crowded</button>
+          <button class="fb-tag" data-tag="charging">Good Charging Access</button>
+        </div>
+
+        <button class="btn-primary" onclick="submitFeedback()">
+          <i class="fas fa-paper-plane"></i> Submit
+        </button>
+        <div style="height:12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN: SUGGEST A SPOT -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-suggest">
+      <div class="screen-content">
+        <div class="filter-header" style="margin-bottom:16px;">
+          <button onclick="goToScreen('home')"><i class="fas fa-arrow-left"></i></button>
+          <h1 style="font-size:20px;">Suggest a Spot</h1>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;color:var(--text);">Space Name</label>
+          <input type="text" id="suggestName" placeholder="e.g. Rooftop Study Area" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;outline:none;background:var(--surface);transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;color:var(--text);">Building</label>
+          <input type="text" id="suggestLocation" placeholder="e.g. Science Block, 2nd Floor" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;outline:none;background:var(--surface);transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;color:var(--text);">Location</label>
+          <div style="background:#EAF5EE;border-radius:var(--radius);height:200px;position:relative;overflow:hidden;border:1px solid #D5E8DC;cursor:pointer;" id="suggestMap" onclick="suggestMapClick(event)">
+            <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(45,159,110,0.06) 1px, transparent 1px),linear-gradient(90deg, rgba(45,159,110,0.06) 1px, transparent 1px);background-size:30px 30px;"></div>
+
+            <!-- Roads -->
+            <div style="position:absolute;top:65px;left:0;right:0;height:2px;background:rgba(156,163,175,0.2);"></div>
+            <div style="position:absolute;top:130px;left:0;right:0;height:2px;background:rgba(156,163,175,0.2);"></div>
+            <div style="position:absolute;top:0;bottom:0;left:110px;width:2px;background:rgba(156,163,175,0.2);"></div>
+            <div style="position:absolute;top:0;bottom:0;left:220px;width:2px;background:rgba(156,163,175,0.2);"></div>
+
+            <!-- Green space -->
+            <div style="position:absolute;top:72px;left:116px;width:96px;height:50px;background:rgba(52,211,153,0.15);border-radius:5px;"></div>
+
+            <!-- Row 1 buildings -->
+            <div style="position:absolute;top:10px;left:12px;width:90px;height:47px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.25);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Library</div>
+            <div style="position:absolute;top:10px;left:116px;width:96px;height:47px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Science</div>
+            <div style="position:absolute;top:10px;left:226px;width:90px;height:47px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Business</div>
+
+            <!-- Row 2 buildings -->
+            <div style="position:absolute;top:72px;left:12px;width:90px;height:50px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.25);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Student<br>Center</div>
+            <div style="position:absolute;top:72px;left:226px;width:90px;height:50px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Engineering</div>
+
+            <!-- Row 3 buildings -->
+            <div style="position:absolute;top:138px;left:12px;width:90px;height:48px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Arts</div>
+            <div style="position:absolute;top:138px;left:116px;width:96px;height:48px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Café</div>
+            <div style="position:absolute;top:138px;left:226px;width:90px;height:48px;background:rgba(255,255,255,0.92);border:1.5px solid rgba(45,159,110,0.18);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:var(--text-secondary);text-align:center;line-height:1.2;">Admin</div>
+
+            <div id="suggestPin" style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;background:var(--primary);border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:none;z-index:5;transition:all 0.15s;"></div>
+            <div style="position:absolute;bottom:8px;left:8px;font-size:9px;color:var(--text-muted);background:rgba(255,255,255,0.88);padding:3px 7px;border-radius:5px;">Tap to drop a pin</div>
+          </div>
+        </div>
+
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;text-align:center;" id="suggestCoords">No pin dropped yet</div>
+
+        <button class="btn-primary" onclick="submitSuggestion()">
+          <i class="fas fa-paper-plane"></i> Submit Suggestion
+        </button>
+        <div style="height:12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 7: ACTIVITY -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-activity">
+      <div class="screen-content">
+        <div class="filter-header" style="margin-bottom:16px;">
+          <button onclick="goToScreen('profile')"><i class="fas fa-arrow-left"></i></button>
+          <h1 style="font-size:20px;">Recent Activity</h1>
+          <div style="width:36px;"></div>
+        </div>
+        <div id="activityList">
+          <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px;">No activity yet</div>
+        </div>
+        <div style="height:12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 8: SAVED SPACES -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-saved">
+      <div class="screen-content">
+        <div class="filter-header" style="margin-bottom:16px;">
+          <button onclick="goToScreen('home')"><i class="fas fa-arrow-left"></i></button>
+          <h1 style="font-size:20px;">Saved Spaces</h1>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          <span id="savedCount">0</span> spaces saved
+        </div>
+
+        <div id="savedList">
+          <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px;">Loading...</div>
+        </div>
+        <div style="height:12px;"></div>
+      </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- SCREEN 8: PROFILE -->
+    <!-- =============================== -->
+    <div class="screen" id="screen-profile">
+      <div class="screen-content">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;padding-top:4px;">
+          <h1 style="font-size:20px;">Profile</h1>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:24px;font-weight:700;flex-shrink:0;">Y</div>
+          <div>
+            <h2 style="font-size:18px;margin-bottom:2px;">You</h2>
+            <div style="font-size:13px;color:var(--text-secondary);">Computer Science · Year 2</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;">
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:var(--primary);">12</div>
+            <div style="font-size:11px;color:var(--text-secondary);">Spaces<br>Visited</div>
+          </div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:var(--primary);" id="reviewCountProfile">0</div>
+            <div style="font-size:11px;color:var(--text-secondary);">Reviews<br>Posted</div>
+          </div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:var(--primary);" id="savedCountProfile">3</div>
+            <div style="font-size:11px;color:var(--text-secondary);">Saved<br>Spaces</div>
+          </div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:var(--primary);">4</div>
+            <div style="font-size:11px;color:var(--text-secondary);"><i class="fas fa-heart" style="color:var(--red);"></i> Likes</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <button onclick="openActivity()" style="display:flex;align-items:center;gap:14px;padding:14px 12px;background:none;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;cursor:pointer;width:100%;text-align:left;transition:background 0.2s;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+            <i class="fas fa-clock-rotate" style="width:20px;color:var(--primary);"></i> Recent Activity
+          </button>
+          <button style="display:flex;align-items:center;gap:14px;padding:14px 12px;background:none;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;cursor:pointer;width:100%;text-align:left;transition:background 0.2s;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+            <i class="fas fa-bell" style="width:20px;color:var(--primary);"></i> Notifications
+          </button>
+          <button style="display:flex;align-items:center;gap:14px;padding:14px 12px;background:none;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;cursor:pointer;width:100%;text-align:left;transition:background 0.2s;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+            <i class="fas fa-gear" style="width:20px;color:var(--primary);"></i> Settings
+          </button>
+          <button style="display:flex;align-items:center;gap:14px;padding:14px 12px;background:none;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;cursor:pointer;width:100%;text-align:left;transition:background 0.2s;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+            <i class="fas fa-circle-question" style="width:20px;color:var(--primary);"></i> Help & Support
+          </button>
+        </div>
+        <div style="height:12px;"></div>
+      </div>
+    </div>
+
+  </div><!-- /screens-container -->
+
+  <!-- Bottom Navigation (shared) -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-screen="home" onclick="goToScreen('home')">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-screen="map" onclick="goToScreen('map')">
+      <i class="fas fa-map"></i>
+      <span>Map</span>
+    </button>
+    <button class="nav-item" data-screen="saved" onclick="showSaved()">
+      <i class="far fa-bookmark"></i>
+      <span>Saved</span>
+    </button>
+    <button class="nav-item" data-screen="profile" onclick="showProfile()">
+      <i class="far fa-user"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+// ===================== DATA =====================
+const locations = [
+  {
+    name: 'Library Level 3',
+    loc: 'Main Library, 3rd Floor',
+    crowd: 'Low',
+    crowdClass: 'green',
+    noise: 'Quiet',
+    noiseClass: 'green',
+    seats: 24,
+    charge: 12,
+    hours: '07:00 – 20:00',
+    dist: '2 min',
+    tags: ['Solo Study', 'Quiet Work'],
+    bg: 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)'
+  },
+  {
+    name: 'Discussion Room A',
+    loc: 'Student Center, Room 204',
+    crowd: 'Moderate',
+    crowdClass: 'yellow',
+    noise: 'Moderate',
+    noiseClass: 'yellow',
+    seats: 8,
+    charge: 6,
+    hours: '07:00 – 20:00',
+    dist: '4 min',
+    tags: ['Group Work', 'Collaboration'],
+    bg: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
+  },
+  {
+    name: 'Student Lounge',
+    loc: 'Student Center, Ground Floor',
+    crowd: 'Low',
+    crowdClass: 'green',
+    noise: 'Moderate',
+    noiseClass: 'yellow',
+    seats: 16,
+    charge: 8,
+    hours: '07:00 – 20:00',
+    dist: '3 min',
+    tags: ['Relaxation', 'Socializing'],
+    bg: 'linear-gradient(135deg, #DBEAFE 0%, #93C5FD 100%)'
+  },
+  {
+    name: 'Quiet Corner',
+    loc: 'Main Library, 2nd Floor',
+    crowd: 'Full',
+    crowdClass: 'red',
+    noise: 'Very Quiet',
+    noiseClass: 'green',
+    seats: 4,
+    charge: 2,
+    hours: '07:00 – 20:00',
+    dist: '5 min',
+    badge: 'Full',
+    badgeClass: 'red',
+    tags: ['Solo Study', 'Deep Focus'],
+    bg: 'linear-gradient(135deg, #FCE4EC 0%, #F48FB1 100%)'
+  }
+];
+
+let currentScreen = 'home';
+let savedSpaces = [];
+let currentDetail = 0;
+let rating = 0;
+
+// ===================== TIME =====================
+function updateTime() {
+  const d = new Date();
+  const h = d.getHours().toString().padStart(2, '0');
+  const m = d.getMinutes().toString().padStart(2, '0');
+  document.getElementById('statusTime').textContent = h + ':' + m;
+
+  const hh = d.getHours();
+  let g = 'Good evening';
+  if (hh < 12) g = 'Good morning';
+  else if (hh < 17) g = 'Good afternoon';
+  document.getElementById('greeting').textContent = g + ', Student';
+}
+updateTime();
+setInterval(updateTime, 10000);
+
+// ===================== NAVIGATION =====================
+function goToScreen(id) {
+  if (id === currentScreen) return;
+  // hide all
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  // show target
+  const target = document.getElementById('screen-' + id);
+  if (target) {
+    target.classList.add('active');
+  }
+  currentScreen = id;
+
+  // update bottom nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navBtn = document.querySelector('.nav-item[data-screen="' + id + '"]');
+  if (navBtn) navBtn.classList.add('active');
+
+  // scroll to top
+  if (target) target.scrollTop = 0;
+}
+
+// ===================== DETAILS =====================
+function openDetails(idx) {
+  currentDetail = idx;
+  const loc = locations[idx];
+  document.getElementById('detailName').textContent = loc.name;
+  document.getElementById('detailLoc').innerHTML = '<i class="fas fa-map-pin"></i> ' + loc.loc;
+  document.getElementById('detailImg').style.background = loc.bg;
+
+  const crowdEl = document.getElementById('detailCrowd');
+  crowdEl.innerHTML = '<i class="fas fa-user-friends"></i> ' + loc.crowd;
+  crowdEl.className = 'value ' + loc.crowdClass;
+
+  const noiseEl = document.getElementById('detailNoise');
+  noiseEl.innerHTML = '<i class="fas fa-volume-down"></i> ' + loc.noise;
+  noiseEl.className = 'value ' + loc.noiseClass;
+
+  document.getElementById('detailSeats').innerHTML = '<i class="fas fa-chair"></i> ' + loc.seats;
+  document.getElementById('detailCharge').innerHTML = '<i class="fas fa-plug"></i> ' + loc.charge;
+  document.getElementById('detailHours').innerHTML = '<i class="fas fa-clock"></i> ' + loc.hours;
+  document.getElementById('detailDist').innerHTML = '<i class="fas fa-walking"></i> ' + loc.dist;
+
+  const tagsContainer = document.getElementById('detailTags');
+  tagsContainer.innerHTML = loc.tags.map(t => '<span class="tag">' + t + '</span>').join('');
+
+  // set save button state for this location
+  const alreadySaved = savedSpaces.includes(idx);
+  const btn = document.getElementById('saveBtn');
+  if (alreadySaved) {
+    btn.className = 'btn-secondary saved';
+    btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+  } else {
+    btn.className = 'btn-secondary';
+    btn.innerHTML = '<i class="far fa-bookmark"></i>';
+  }
+
+  // update nav destination
+  document.getElementById('navDest').textContent = loc.name;
+
+  goToScreen('details');
+}
+
+function toggleSave() {
+  const idx = currentDetail;
+  const btn = document.getElementById('saveBtn');
+  const wasSaved = savedSpaces.includes(idx);
+  if (wasSaved) {
+    savedSpaces = savedSpaces.filter(i => i !== idx);
+    btn.className = 'btn-secondary';
+    btn.innerHTML = '<i class="far fa-bookmark"></i>';
+    showToast('Removed from saved');
+  } else {
+    savedSpaces.push(idx);
+    btn.className = 'btn-secondary saved';
+    btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+    showToast('Saved to your spaces');
+  }
+  updateSavedCount();
+}
+
+// ===================== NAVIGATION =====================
+function navArrived() {
+  showToast('Arrived at destination!');
+  setTimeout(() => goToScreen('feedback'), 600);
+}
+
+// ===================== FEEDBACK =====================
+document.querySelectorAll('.star-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    rating = parseInt(this.dataset.star);
+    document.querySelectorAll('.star-btn').forEach((s, i) => {
+      s.classList.toggle('active', i < rating);
+    });
+  });
+});
+
+document.querySelectorAll('.fb-tag').forEach(tag => {
+  tag.addEventListener('click', function() {
+    this.classList.toggle('selected');
+  });
+});
+
+function submitFeedback() {
+  const comment = document.getElementById('fbComment').value.trim();
+  const selectedTags = document.querySelectorAll('.fb-tag.selected').length;
+  if (rating === 0) {
+    showToast('Please select a rating');
+    return;
+  }
+  addActivity('review', currentDetail, 'Left a full review: "' + (comment || 'No comment') + '"', rating);
+  showToast('Feedback submitted! Thank you.');
+  // reset
+  rating = 0;
+  document.querySelectorAll('.star-btn').forEach(s => s.classList.remove('active'));
+  document.getElementById('fbComment').value = '';
+  document.querySelectorAll('.fb-tag').forEach(t => t.classList.remove('selected'));
+  setTimeout(() => goToScreen('home'), 800);
+}
+
+// Detail page feedback stars
+let detailRating = 0;
+document.querySelectorAll('#detailStars .star-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    detailRating = parseInt(this.dataset.dstar);
+    document.querySelectorAll('#detailStars .star-btn').forEach((s, i) => {
+      s.classList.toggle('active', i < detailRating);
+    });
+  });
+});
+
+function postDetailFeedback() {
+  const input = document.getElementById('detailFbInput');
+  if (detailRating === 0) {
+    showToast('Tap a star to rate');
+    return;
+  }
+  const comment = input.value.trim() || 'No comment';
+  addActivity('review', currentDetail, 'Posted a review: "' + comment + '"', detailRating);
+  showToast('Feedback posted! ★' + detailRating);
+  detailRating = 0;
+  document.querySelectorAll('#detailStars .star-btn').forEach(s => s.classList.remove('active'));
+  input.value = '';
+}
+
+function bookSeat() {
+  const loc = locations[currentDetail];
+  addActivity('booking', currentDetail, 'Booked a seat at ' + loc.name);
+  showToast('Seat booked at ' + loc.name + '!');
+}
+
+// ===================== ACTIVITY LOG =====================
+let activityLog = [];
+
+function addActivity(type, locationIdx, detail, rating) {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  activityLog.unshift({
+    type,
+    location: locations[locationIdx].name,
+    detail,
+    rating,
+    time: timeStr,
+    date: now.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})
+  });
+  updateSavedCount();
+}
+
+function renderActivity() {
+  const container = document.getElementById('activityList');
+  if (!container) return;
+  if (activityLog.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px;">No activity yet</div>';
+    return;
+  }
+  container.innerHTML = activityLog.map(a => {
+    const icon = a.type === 'booking' ? 'fa-calendar-check' : 'fa-star';
+    const color = a.type === 'booking' ? 'var(--primary)' : '#FBBF24';
+    const stars = a.rating ? ' ★'.repeat(a.rating) : '';
+    return `
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:${color};font-size:14px;flex-shrink:0;">
+          <i class="fas ${icon}"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;">${a.detail}</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:1px;">${a.location}${stars}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;">${a.date} ${a.time}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openActivity() {
+  renderActivity();
+  goToScreen('activity');
+}
+
+// ===================== SUGGEST A SPOT =====================
+let suggestPinDropped = false;
+
+function suggestMapClick(e) {
+  const map = document.getElementById('suggestMap');
+  const rect = map.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 100;
+  const y = ((e.clientY - rect.top) / rect.height) * 100;
+  const pin = document.getElementById('suggestPin');
+  pin.style.display = 'block';
+  pin.style.left = x + '%';
+  pin.style.top = y + '%';
+  suggestPinDropped = true;
+  document.getElementById('suggestCoords').textContent = 'Pin dropped';
+}
+
+function submitSuggestion() {
+  const name = document.getElementById('suggestName').value.trim();
+  const location = document.getElementById('suggestLocation').value.trim();
+  if (!name) { showToast('Enter a space name'); return; }
+  if (!location) { showToast('Enter a location'); return; }
+  if (!suggestPinDropped) { showToast('Drop a pin on the map'); return; }
+  addActivity('booking', 0, 'Suggested a new spot: "' + name + '" at ' + location);
+  showToast('Spot suggested! Thanks for contributing');
+  document.getElementById('suggestName').value = '';
+  document.getElementById('suggestLocation').value = '';
+  document.getElementById('suggestPin').style.display = 'none';
+  suggestPinDropped = false;
+  document.getElementById('suggestCoords').textContent = 'No pin dropped yet';
+  setTimeout(() => goToScreen('home'), 600);
+}
+
+// ===================== FILTERS =====================
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    this.classList.toggle('selected');
+  });
+});
+
+function resetFilters() {
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  // Re-select defaults
+  const defaults = document.querySelectorAll('#filter-type .chip:nth-child(1), #filter-type .chip:nth-child(3), #filter-capacity .chip:nth-child(1), #filter-crowd .chip:nth-child(1)');
+  defaults.forEach(c => c.classList.add('selected'));
+}
+
+// ===================== TOAST =====================
+let toastTimeout;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ===================== BOTTOM NAV PLACEHOLDERS =====================
+function showSaved() {
+  if (savedSpaces.length === 0) {
+    showToast('No saved spaces yet');
+    return;
+  }
+  renderSavedSpaces();
+  goToScreen('saved');
+}
+
+function renderSavedSpaces() {
+  const container = document.getElementById('savedList');
+  if (!container) return;
+  if (savedSpaces.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px;">No saved spaces yet</div>';
+    return;
+  }
+  container.innerHTML = savedSpaces.map(idx => {
+    const loc = locations[idx];
+    const dotClass = loc.crowdClass;
+    return `
+      <div class="loc-card" onclick="openDetails(${idx})">
+        <span class="loc-dot ${dotClass}"></span>
+        <div class="loc-info">
+          <h3>${loc.name}</h3>
+          <p>${loc.loc}</p>
+        </div>
+        <span class="loc-cap">${loc.seats} seats</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateSavedCount() {
+  const el = document.getElementById('savedCount');
+  if (el) el.textContent = savedSpaces.length;
+  const profileEl = document.getElementById('savedCountProfile');
+  if (profileEl) profileEl.textContent = savedSpaces.length;
+  const reviewCount = document.getElementById('reviewCountProfile');
+  if (reviewCount) reviewCount.textContent = activityLog.filter(a => a.type === 'review').length;
+}
+
+function showProfile() {
+  goToScreen('profile');
+}
+
+// ===================== INIT =====================
+// Seed demo activity
+addActivity('booking', 0, 'Booked a seat at Library Level 3');
+addActivity('review', 0, 'Left a full review: "Great place to study"', 4);
+addActivity('booking', 2, 'Booked a seat at Student Lounge');
+updateSavedCount();
+// Ensure map screen context works from home categories
+// Already handled by goToScreen('map')
+</script>
+</body>
+</html>
